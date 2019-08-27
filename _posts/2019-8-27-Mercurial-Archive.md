@@ -5,6 +5,8 @@ title: The Mercurial Archive
 
 How often do you look at the code you wrote ~10 years ago? Bitbucket announced [Sunsetting Mercurial Support](https://news.ycombinator.com/item?id=20745393), including complete removal of all repositories using that source control system. So naturally, as one of the unfortunate souls who initially picked HG over Git, I checked out what I had there.
 
+![Some Texas library](https://law.utexas.edu/wp-content/uploads/sites/31/2016/02/DSC00066__Small_.jpg)
+
 Some projects successfully migrated to GitHub or VSO, but there were still quite a few, which I did not touch in years. Several of them the naive me from 2010 even considered to have commercial potential, so they were private repositories. Soon, of course, I will share them all (but won't tell you which is which).
 
 # [Alternate F#](https://bitbucket.org/lost/alternate-f/)
