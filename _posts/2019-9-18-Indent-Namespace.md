@@ -30,7 +30,8 @@ contents in Visual Studio).
 Searching for references to this property gave back only
 about 10 places, of which only one was an actual
 implementation in the Roslyn formatting engine. As it
-turned out, I only needed to add a simple `if` branch
+turned out, I only needed to [add a simple `if` branch](https://github.com/dotnet/roslyn/pull/38755/files#diff-b12f01a1a15f45c02b23b989600b7cb7
+)
 that skips indent procedure for a certain AST node type:
 `NamespaceDeclarationSyntax` if the option is turned off.
 The rest of the changes are unit tests, and view model 
