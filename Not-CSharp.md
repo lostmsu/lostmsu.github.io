@@ -5,9 +5,9 @@ categories: resnet sample advanced ml nn
 excerpt_separator: <!--more--> 
 ---
 
-In Silicon Valley season 4 Jian-Yang builds an AI app, that identifies pictures of hotdogs.
+In Silicon Valley season 4, Jian-Yang builds an AI app that identifies pictures of hotdogs.
 Today I am going to make a similar app to identify programming languages from code fragments.
-Whichever one I use, the code tends to look like it's written in C#,
+Whichever fragment I use, the code tends to look like it's written in C#,
 so it is going to be very helpful!
 
 I mean, look at this terrible Python:
@@ -61,7 +61,7 @@ If a file/line ends too soon, the rest will be padded with space characters to m
 
 Turned out my `Projects` folder has plenty of code with the following extensions: `.cs`, `.py`,
 `.h`, `.cc`, `.c`, `.tcl`, `.java`, `.sh`, many coming from various open source libraries.
-I also downloaded about 5 top trending GitHub repositories from that day I never saw before to have
+I also downloaded ~5 top trending GitHub repositories to have
 some variety in the code styles.
 
 All files needed some preprocessing: replaced tab character with spaces, and any characters with code
@@ -73,10 +73,10 @@ I set aside 10% files of each type for validation. They are used at the end of t
 to ensure the model does not just learn patterns specific to the files I train it on.
 
 There were several thousand of files of each type, more of some, less of others. To ensure the model will
-not be biased towards more popular languages, for each file type the training code samples ~50 000 64x64 blocks,
+not be biased towards more popular languages, for each file type the training code samples ~50,000 64x64 blocks,
 no matter how many files of this type there are. The process is simple: first, pick a random file with
 specific extension, then pick a random line and column number to start sample from, then copy a 64x64 block of
-characters from that position into a `byte` array, containing training samples. Repeat 50 000 times for each
+characters from that position into a `byte` array, containing training samples. Repeat 50,000 times for each
 extension ([sampling code](
     https://github.com/losttech/Gradient-Samples/blob/1495521b6b8ba1b18c1167b838b08372bca8a4f3/CSharpOrNot/TrainCommand.cs#L130)).
 
