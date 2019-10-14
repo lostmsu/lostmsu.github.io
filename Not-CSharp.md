@@ -18,11 +18,11 @@ switch(hello)
 ```
 
 Of course the whole thing from building and training a deep convolutional network to the UI
-will be written in my favorite language: ~~Java~~. Just kidding, it's C# + TensorFlow.
+will be written in my favorite language: ~~Go~~. Just kidding, it's C# + TensorFlow.
 
 ![C# or NOT screenshot, showing Python detected](/images/NotCSharp.png)
 
-_Advanced-level tutorial on training a deep convnet to detect programming language_
+_Advanced-level tutorial on training a deep convnet to detect language from code fragments_
 
 <!--more-->
 
@@ -278,7 +278,7 @@ I published the trained weights to [GitHub](
     https://github.com/losttech/Gradient-Samples/releases/tag/csharp-or-not%2Fv1),
 so you don't have to train from scratch, if you just want to play with it.
 
-# Avalonia UI
+# Making an app: Avalonia UI
 
 That was the easy part of C# or NOT: I followed Avalonia's [official tutorial](
     https://avaloniaui.net/docs/quickstart/create-new-project).
