@@ -5,9 +5,10 @@ categories: resnet sample advanced ml nn
 excerpt_separator: <!--more--> 
 ---
 
-In Silicon Valley season 4 Jian-Yang builds an AI app, that identifies pictures of hotdogs. In case
-one forgets how food other than hotdogs looks like. I have very much same problem with programming
-languages: whichever one I use, the code tends to look like it's written in C#!
+In Silicon Valley season 4 Jian-Yang builds an AI app, that identifies pictures of hotdogs.
+Today I am going to make a similar app to identify programming languages from code fragments.
+Whichever one I use, the code tends to look like it's written in C#,
+so it is going to be very helpful!
 
 I mean, look at this terrible Python:
 
@@ -16,17 +17,12 @@ var = await.add(item)
 switch(hello)
 ```
 
-The situation gets worse with a mobile phone in a rush. Pieces of code just end up
-in the notes app, obviously without file extensions, so it is easy to forget which language they are.
-To address this incredibly rare problem, I decided to make a cross-platform "AI" app, that
-would help me determine what programming language some random block of code is written in.
-
-![C# or NOT screenshot, showing Python detected](/images/NotCSharp.png)
-
 Of course the whole thing from building and training a deep convolutional network to the UI
 will be written in my favorite language: ~~Java~~. Just kidding, it's C# + TensorFlow.
 
-_Advanced-level tutorial on training a deep convnet_
+![C# or NOT screenshot, showing Python detected](/images/NotCSharp.png)
+
+_Advanced-level tutorial on training a deep convnet to detect programming language_
 
 <!--more-->
 
@@ -136,7 +132,11 @@ public class ResNetBlock: Model {
         this.outputChannels = filters[PartCount - 1];
     }
 
-    public override dynamic call(object inputs, ImplicitContainer<IGraphNodeBase> training = null, IEnumerable<IGraphNodeBase> mask = null) {
+    public override dynamic call(
+            object inputs,
+            ImplicitContainer<IGraphNodeBase> training = null,
+            IEnumerable<IGraphNodeBase> mask = null)
+    {
         return this.CallImpl((Tensor)inputs, training?.Value);
     }
 
