@@ -310,3 +310,8 @@ some OOP helps to abstract its building blocks away.
 
 The pre-trained network can be used in a cross-platform UI app
 to load text files, and classify the programming language a block of text is written in.
+
+The full up-to-date code of C# or NOT can be found on
+[GitHub](https://github.com/losttech/Gradient-Samples/tree/master/CSharpOrNot).
+Also, [pretrained weights for v1](
+    https://github.com/losttech/Gradient-Samples/releases/tag/csharp-or-not%2Fv1).
