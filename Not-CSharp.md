@@ -10,7 +10,7 @@ Today I am going to make a similar app to identify programming languages from co
 Whichever language I use, the code tends to look like it's written in C#,
 so it is going to be very helpful!
 
-I mean, look at this terrible Python:
+I mean, look at this terrible Python I wrote:
 
 ```python
 var = await.add(item)
