@@ -6,23 +6,22 @@ excerpt_separator: <!--more-->
 ---
 
 In Silicon Valley season 4, Jian-Yang builds an AI app that identifies pictures of hotdogs.
-Today I am going to make a similar app to identify programming languages from code fragments.
-Whichever language I use, the code tends to look like it's written in C#,
-so it is going to be very helpful!
+Today I am going to make a similar app to identify C# from code fragments (in case you forget
+how C# looks like!).
 
-I mean, look at this terrible Python I wrote:
+Look at this Python trying to pretend to be your favorite language:
 
 ```python
 var = await.add(item)
 switch(hello)
 ```
 
-Of course the whole thing from building and training a deep convolutional network to the UI
-will be written in my favorite language: ~~Go~~. Just kidding, it's C# + TensorFlow.
+Of course the whole thing from building and training a deep convolutional network
+to the cross-platform UI will be written in .NET + TensorFlow.
 
-![C# or NOT screenshot, showing Python detected](/images/NotCSharp.png)
+![Not C# screenshot, showing Python detected](/images/NotCSharp.png)
 
-_Advanced-level tutorial on training a deep convnet to detect language from code fragments_
+_Advanced-level tutorial on training a deep convnet to classify language from code fragments_
 
 <!--more-->
 
@@ -37,7 +36,7 @@ _Advanced-level tutorial on training a deep convnet to detect language from code
 Normally to process a sequence of any kind (in this case - characters), one would use an <a href="https://en.wikipedia.org/wiki/LSTM">LSTM</a> - long-short term memory network. However, getting an LSTM network
 to recognize a programming language of an entire file is too easy and boring.
 
-Instead, C# or NOT AI will take as input a 64 by 64 block of characters from a text file, starting at
+Instead, Not C# AI will take as input a 64 by 64 block of characters from a text file, starting at
 an arbitrary position.
 
 For example, this file
@@ -57,6 +56,19 @@ ize_t num_channels,
 
 If a file/line ends too soon, the rest will be padded with space characters to make a full 64 by 64 block.
 
+Every character will be converted to 0-255 range, and the whole input will look like
+a 64x64 grayscale image. You can see an example in the center of the pic below.
+Text on the right helps to understand which part of the code it represents,
+when you move the starting point.
+
+![Not C# screenshot, showing the image, that network sees](/images/NotCSharp-Parts.png)
+
+Now try to guess the language from this image :)
+
+![Code, encoded as a grayscale image](/images/CSharp-NOT-Code-IMG.png)
+
+_HINT: there's a single character in 2nd line from the last_
+
 ## Preparing data
 
 Turned out my `Projects` folder has plenty of code with the following extensions: `.cs`, `.py`,
@@ -64,10 +76,9 @@ Turned out my `Projects` folder has plenty of code with the following extensions
 I also downloaded ~5 top trending GitHub repositories to have
 some variety in the code styles.
 
-All files needed some preprocessing: replaced tab character with spaces, and any characters with code
+All files needed some preprocessing on load: replaced tab character with spaces, and any characters with code
 above 255 with underscores (so that each character took exactly 1 byte, _sorry, Unicode_).
-Also replaced all other non-newline whitespace characters with code 255 to make them stand out. All this was
-done in memory while the files were loaded.
+Also replaced all other non-newline whitespace characters with code 255 to make them stand out.
 
 I set aside 10% files of each type for validation. They are used at the end of the training
 to ensure the model does not just learn patterns specific to the files I train it on.
@@ -76,15 +87,14 @@ There were several thousand of files of each type, more of some, less of others.
 not be biased towards more popular languages, for each file type the training code samples ~50,000 64x64 blocks,
 no matter how many files of this type there are. The process is simple: first, pick a random file with
 specific extension, then pick a random line and column number to start sample from, then copy a 64x64 block of
-characters from that position into a `byte` array, containing training samples. Repeat 50,000 times for each
-extension ([sampling code](
+characters from that position into a `byte` array, containing training samples.
+Picking a file first ensures large files will not be overrepresented. The process is repeated
+50,000 times for each extension to obtain enough samples ([sampling code](
     https://github.com/losttech/Gradient-Samples/blob/1495521b6b8ba1b18c1167b838b08372bca8a4f3/CSharpOrNot/TrainCommand.cs#L130)).
 
 So inputs are 64x64 byte arrays, where character code simply turns into brightness of the "pixel".
 In the end the network will only see the image in the center as input. Text on the right helps to
 understand which part of code it represents. Try to guess the language from that image, ha!
-
-![C# or NOT screenshot, showing the image, that network sees](/images/NotCSharp-Parts.png)
 
 ## Building a convolutional network
 
@@ -92,7 +102,7 @@ understand which part of code it represents. Try to guess the language from that
     https://en.wikipedia.org/wiki/Convolutional_neural_network) architecture.
 One of the recent ones is called [ResNet](
     https://towardsdatascience.com/an-overview-of-resnet-and-its-variants-5281e2f56035).
-C# or NOT is using a simplified version of it.
+Not C# will use a simplified version.
 
 ResNet consists of blocks, which stack 3 [convolutional layers](
     https://www.tensorflow.org/api_docs/python/tf/keras/layers/Conv2D),
@@ -209,6 +219,10 @@ I also applied a 5% dropout to the input for regularization (the first in sequen
 it prevents model from memorizing exact lines of code from the training set by masking
 different random characters out in different training iterations.
 
+Part of the resulting model graph from TensorBoard:
+
+![Part of neural network graph from TensorBoard](/images/NotCSharp-Model.png)
+
 ## Training the network
 
 So the model is built, training inputs are layed one after another in a giant byte array.
@@ -263,7 +277,7 @@ I figured out the issue was actually caused by a nasty bug in TensorFlow 1.10's
 Also, the original model did not have the dropout layer right after the input, so it was overfitting,
 until I added one.
 
-## Hooray
+## Hooray!
 
 After about 2 days of training on my GPU, I got a model with ~86% accuracy.
 E.g. given a 64x64 block of text from a code file, it would recognize the language
@@ -280,7 +294,7 @@ so you don't have to train from scratch, if you just want to play with it.
 
 # Making an app: Avalonia UI
 
-That was the easy part of C# or NOT: I followed Avalonia's [official tutorial](
+That was the easy part of Not C#: I followed Avalonia's [official tutorial](
     https://avaloniaui.net/docs/quickstart/create-new-project).
 A couple of Grids, TextBlocks and some event wiring, and the app was able to load
 code files, and use `TextBox` cursor position to select the starting point
@@ -304,14 +318,14 @@ __Look, it is C#!__
 
 # Conclusion
 
-C# or NOT demonstrates how to design and train a deep convolutional neural network
+Not C# demonstrates how to design and train a deep convolutional neural network
 with C# and TensorFlow. High-level Keras API is used to describe the model, and
 some OOP helps to abstract its building blocks away.
 
 The pre-trained network can be used in a cross-platform UI app
 to load text files, and classify the programming language a block of text is written in.
 
-The full up-to-date code of C# or NOT can be found on
+The full up-to-date code of Not C# can be found on
 [GitHub](https://github.com/losttech/Gradient-Samples/tree/master/CSharpOrNot).
 Also, [pretrained weights for v1](
     https://github.com/losttech/Gradient-Samples/releases/tag/csharp-or-not%2Fv1).
