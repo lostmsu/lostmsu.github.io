@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Deep learning - Not C#
-categories: resnet sample advanced ml nn
+categories: resnet sample advanced ml nn CodeProject
 excerpt_separator: <!--more--> 
 ---
 
