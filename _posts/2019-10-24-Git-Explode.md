@@ -2,7 +2,7 @@
 layout: post
 title: Git Explode
 categories: git restore backup reset hard
-excerpt_separator: <!--more--> 
+excerpt_separator: <!--more-->
 ---
 
 A story of lost and recovered code for a project I just created.
