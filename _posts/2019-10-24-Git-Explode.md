@@ -5,11 +5,11 @@ categories: git restore backup reset hard
 excerpt_separator: <!--more--> 
 ---
 
-This is a story of lost and recovered code for a project I just created.
+A story of lost and recovered code for a project I just created.
 
 <!--more-->
 
-## Explosion
+## Boom!
 
 While upgrading [Gradient](https://losttech.software/gradient.html) to TensorFlow 1.15,
 I faced the need for a way to create a
