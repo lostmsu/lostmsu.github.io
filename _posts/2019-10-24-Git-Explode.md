@@ -27,7 +27,7 @@ Now I needed to merge the two, so I hit publish in Visual Studio, and pointed it
 That set the `origin` remote to my GitHub repo, but did not publish local changes,
 as the local `master` branch and the remote one did not have a common ancestor.
 
-"OK", I though, "let's fetch, make local `master` point to `origin/master`,
+"OK", I though, "let's fetch, make local `master` point to `origin/master`, from GitHub
 then commit local files". So I did
 
 ```PowerShell
@@ -47,15 +47,18 @@ nothing to commit, working tree clean
 
 ## Denial
 
-If you ever did `git reset` without thinking before, and recovered, you know a "magical"
-command `git reflog`, which shows recent commits you worked with (to be precise it
-shows which commits your repository was checked out at, so if you did
+If you ever did `git reset` without thinking before and recovered, you know a "magical"
+command `git reflog`, which shows recent commits you worked with. To be precise it
+shows which commits your repository was ever checked out at, so if you did
 `git checkout AAA` then `git checkout BBB` then `git reset --hard CCC` it will show `AAA;BBB;CCC`,
-and you can return to any of them using `git checkout AAA`, for example).
+and you can return to any of them using `git checkout AAA`, as long as you never had
+git [collect garbage](https://git-scm.com/docs/git-gc).
 
 For example:
 
 ```git
+> git reflog
+...
 c988afd HEAD@{4}: checkout: moving from master to c988afd
 ea279fb HEAD@{5}: reset: moving to origin/master
 c988afd HEAD@{6}: commit (initial): Add .gitignore and .gitattributes.
@@ -67,7 +70,7 @@ Unfortunately, `git checkout c988afd` did not restore the files, as I expected.
 
 ## Anger
 
-But why? The message for the initial commit gave a hint: I never checked in those files
+**But why?** The message for the initial commit gave a hint: I never checked in those files
 before `git reset`, but they were staged. And, turns out, when you switch to a commit tree
 with a different initial commit, `git reset` completely drops all the staged changes!
 
@@ -107,7 +110,7 @@ src/
 fatal: Cannot switch branch to a non-commit '97cc6b041928db3f3d282bbd30f5d1e276e47b19'
 ```
 
-What is a git tree? I did not know.
+**What is a git tree?** I did not know.
 
 ## Depression
 
@@ -121,11 +124,11 @@ fatal: '97cc6b041928db3f3d282bbd30f5d1e276e47b19' is not a working tree
 
 So a *tree* is not a *working tree*, OK.
 
-Sigh.
+**Sigh.**
 
 ## Acceptable
 
-Searching `git restore tree -"working"`...
+Now searching `git restore tree -"working"`...
 
 [Bingo!](https://git-scm.com/docs/git-ls-tree) (ls-tree)
 
@@ -154,14 +157,14 @@ The most similar command is
         remote
 ```
 
-o_O but it is right there, in docs!
+**o_O** but it is right there, in docs!
 
 ```PowerShell
 > git --version
 git version 2.17.1
 ```
 
-Ah. Docs are for version 2.23.0
+Ah. Docs are for version *2.23.0*
 
 ```PowerShell
 choco install git
@@ -200,4 +203,4 @@ Changes to be committed:
 
 Project is restored and out on GitHub and NuGet: [IO.Links](https://github.com/losttech/IO.Links)
 \- cross-platform symlink and hardlink management for .NET.
-(really untested symlink creation only at the time of the post).
+(really: untested symlink creation only v0.0.1 at the time of the post).
