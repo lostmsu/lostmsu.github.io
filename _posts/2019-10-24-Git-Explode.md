@@ -204,3 +204,13 @@ Changes to be committed:
 Project is restored and out on GitHub and NuGet: [IO.Links](https://github.com/losttech/IO.Links)
 \- cross-platform symlink and hardlink management for .NET.
 (really: untested symlink creation only v0.0.1 at the time of the post).
+
+### Update 2019-10-26
+
+As Ape3000 mentioned in the [Reddit thread](https://www.reddit.com/r/git/comments/dn3i2z/successfully_recovered_after_git_reset_hard_with/f598bed/), updating git is not necessary.
+`git restore` can be replaced with a variant of checkout:
+
+```PowerShell
+# git checkout (-p|--patch) [<tree-ish>] [--] [<paths>…​]
+> git checkout HASH_FROM_OTHER -- .
+```
