@@ -11,6 +11,8 @@ the new Microsoft policies.
 
 What a shame.
 
+<!--more-->
+
 The whole idea of distributing it through the Store was for users to
 have a safe place to discover and download a cryptocurrency miner,
 as opposed to looking for one on random Internet forums with real risk to
