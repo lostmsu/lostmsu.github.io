@@ -11,6 +11,8 @@ the new Microsoft policies.
 
 What a shame.
 
+UPD. You can now reinstall miner from [Lost Tech Downloads](Microsoft-bans-cryptocurrency-miners-from-Store/#Update-Miner-is-available-on-Lost-Tech-website)
+
 <!--more-->
 
 The whole idea of distributing it through the Store was for users to
@@ -33,3 +35,17 @@ the access to everyone.
 Now I'll have to spent a few days developing an alternative distribution system,
 and probably will loose a significant chunk of existing users.
 IMHO, that policy will hurt overall tech adoption too.
+
+## UPDATE: Miner is available from Lost Tech website
+
+Download from [Lost Tech Downloads](https://losttech.software/Downloads/Mine/)
+
+If you had one installed from Store, backup
+
+`C:\Users\<YOUR USER>\AppData\Local\Packages\LostTechLLC.MineETH_kdyhxf5sz30e2\LocalState\Mine.config`
+
+Then uninstall the Store one, and install the new one.
+
+Copy your config backup and overwrite the new config location:
+
+`AppData\Local\Packages\LostTechLLC.MineETH_aptdcfzknqkda\LocalState\Mine.config`
