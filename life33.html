@@ -1,0 +1,140 @@
+---
+layout: independent
+title: Mostly inaccurate but dead honest 33 years of one man's life
+---
+<style type="text/css">
+    @import url('//fonts.googleapis.com/css?family=Lato:400,400italic,700,700italic');
+
+    body {
+        font-family: 'Lato', Arial, Helvetica, sans-serif;
+        font-value: 16px;
+    }
+
+    .node {
+        border: solid 1px white;
+        font: 1.2em sans-serif;
+        overflow: hidden;
+        position: absolute;
+        /* text-indent: 2px; */
+        cursor: default;
+        display: flex;
+        /* margin: 6px; */
+        align-items: center;
+        /* text-align: center; */
+    }
+
+    .treemap{
+        color: white;
+    }
+
+    a {
+        color: dimgray;
+    }
+
+    .toolTip {
+        position: absolute;
+        display: none;
+        width: auto;
+        height: auto;
+        background: none repeat scroll 0 0 white;
+        border: 0 none;
+        border-radius: 8px 8px 8px 8px;
+        box-shadow: -3px 3px 15px #888888;
+        color: black;
+        font: 12px sans-serif;
+        padding: 5px;
+        text-align: center;
+    }
+</style>
+
+<h1>Mostly inaccurate but dead honest 33 years of one man's life</h1>
+<p class="variants">
+    <a href="?life-full">Everything</a>
+    <a href="?life-no-needs">Without required bits</a>
+</p>
+    <script src="https://d3js.org/d3.v3.js"></script>
+    <script type="text/javascript">
+        var width = document.documentElement.clientWidth-80,
+            height = document.documentElement.clientHeight-200;
+
+        let variant = window.location.search.substr(1);
+
+        var colors =["#505050","#505050","#8C2C0E","#00668C","#D85028","#3D3021","#839BE6","#C6D445","#C3B66B","D1A7CC","#70D3C5","#DD9692"];
+        if (variant != "life-full") {
+            colors.shift();
+        }
+        var color = d3.scale.ordinal().range(colors);
+            
+        var treemap = d3.layout.treemap()
+            .size([width, height])
+            .padding(.25) //I like the thin interal lines, the group seporations are set in the CSS
+            .value(function (d) {
+                return d.value;
+            });
+
+        var div = d3.select("body").append("div")
+            .attr("class","treemap")
+            .style("position", "relative")
+            .style("width", width + "px")
+            .style("height", height + "px");
+
+        var ledg = d3.select("body").append("div")
+            .style("position", "relative")
+            .style("width", width + "px")
+            .style("height", 300 + "px");
+
+        var tool = d3.select("body").append("div").attr("class", "toolTip");
+
+        d3.select(self.frameElement).style("height", height + 300 + "px");
+        d3.select(self.frameElement).style("width", width+20 + "px");
+
+        function roundToTwo(num) {
+            return +(Math.round(num + "e+2") + "e-2");
+        };
+
+        var source = variant + ".json";
+
+        d3.json(source, function (error, root) {
+            if (error) throw error;
+
+            var nodes = treemap.nodes(root);
+
+            div.selectAll(".node")
+                .data(nodes)
+              .enter().append("div")
+                .attr("class", "node")
+                .style("left", function (d) { return d.x + "px"; })
+                .style("top", function (d) { return d.y + "px"; })
+                .style("width", function (d) { return Math.max(0, d.dx - 1) + "px"; })
+                .style("height", function (d) { return Math.max(0, d.dy - 1) + "px"; })
+                .style("background", function (d) {
+                    return d.children
+                        ? color(d.name)
+                        : null; })
+                .text(function (d) { return d.children
+                    ? null
+                    : (d.dy < 10)
+                        ? null
+                        : (d.dx < 10)
+                            ? null
+                            : (d.name).length < (d.dx / 4)
+                                ? d.name + ' ' + roundToTwo((d.value / root.value) * 100) + '%'
+                                : (d.dy < 25) ? null : ((d.name).length < (d.dx / 2.5)) ? d.name + ' ' + roundToTwo((d.value / 16147370.2) * 100) + '%' : null })
+                .on("mousemove", function (d) {
+                    if (d.children) {
+                        return;
+                    }
+                    var text = d.full_name ? d.full_name : d.name;
+                    text = text + "<br>" + Math.round(d.value) + ' hours<br>' +  roundToTwo((d.value / root.value) * 100) + '%'
+                    if (d.parent) {
+                        text = text + "<br><br>" + d.parent.name;
+                    }
+                    tool.style("left", d3.event.pageX + 10 + "px")
+                    tool.style("top", d3.event.pageY - 20 + "px")
+                    tool.style("display", "inline-block");
+                    tool.html(text);
+                }).on("mouseout", function (d) {
+                    tool.style("display", "none");
+                });
+        });
+    </script>

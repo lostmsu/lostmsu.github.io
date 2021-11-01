@@ -1,0 +1,353 @@
+{
+    "children": [
+        {
+            "name": "Chilling",
+            "children": [
+                {
+                    "name": "Coding4Fun",
+                    "group": "A",
+                    "value": 15341,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Being under 3yo (-sleep)",
+                    "group": "B",
+                    "value": 14793,
+                    "colname": "level3"
+                },
+                {
+                    "name": "TV",
+                    "group": "C",
+                    "value": 12000,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Traveling (-sleep)",
+                    "group": "S",
+                    "value": 10080,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Reading books",
+                    "group": "E",
+                    "value": 8760,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Restaurants & Bars",
+                    "group": "S",
+                    "value": 6209,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Hanging out",
+                    "group": "S",
+                    "value": 6200,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Internet flaming",
+                    "group": "S",
+                    "value": 4000,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Listening to music",
+                    "group": "F",
+                    "value": 3068,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Watching porn",
+                    "group": "G",
+                    "value": 852,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Shopping",
+                    "group": "S",
+                    "value": 192,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Cinema",
+                    "group": "S",
+                    "value": 816,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Board games",
+                    "group": "S",
+                    "value": 120,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Sex",
+                    "group": "S",
+                    "value": 204,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Online shopping",
+                    "group": "S",
+                    "value": 200,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Chats (IM)",
+                    "group": "S",
+                    "value": 2000,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Opera, theater, etc",
+                    "group": "S",
+                    "value": 20,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Playing musical instruments",
+                    "group": "H",
+                    "value": 100,
+                    "colname": "level3"
+                }
+            ],
+            "colname": "level2"
+        },
+        {
+            "name": "Education",
+            "children": [
+                {
+                    "name": "r/MachineLearning",
+                    "group": "A",
+                    "value": 2000,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Habr",
+                    "group": "A",
+                    "value": 12000,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Hacker News",
+                    "group": "A",
+                    "value": 10000,
+                    "colname": "level3"
+                },
+                {
+                    "name": "School (10 grades)",
+                    "group": "B",
+                    "value": 10331,
+                    "colname": "level3"
+                },
+                {
+                    "name": "University (actual studying)",
+                    "group": "B",
+                    "value": 2000,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Getting to school",
+                    "group": "C",
+                    "value": 1033,
+                    "colname": "level3"
+                }
+            ],
+            "colname": "level2"
+        },
+        {
+            "name": "Work",
+            "children": [
+                {
+                    "name": "Startup",
+                    "group": "A",
+                    "value": 6261,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Amazon (Alexa)",
+                    "group": "B",
+                    "value": 1122,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Microsoft (CRM)",
+                    "group": "B",
+                    "value": 4174,
+                    "colname": "level3"
+                },
+                {
+                    "name": "GPI",
+                    "group": "C",
+                    "value": 1122,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Sidegigs",
+                    "group": "D",
+                    "value": 1000,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Commute",
+                    "group": "E",
+                    "value": 2019,
+                    "colname": "level3"
+                }
+            ],
+            "colname": "level2"
+        },
+        {
+            "name": "Video Games",
+            "children": [
+                {
+                    "name": "DotA 2",
+                    "group": "A",
+                    "value": 4450,
+                    "colname": "level3"
+                },
+                {
+                    "name": "DotA (WC3)",
+                    "group": "A",
+                    "value": 2200,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Dendy games",
+                    "group": "B",
+                    "value": 1278,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Warcraft III",
+                    "group": "C",
+                    "value": 16,
+                    "colname": "level3"
+                },
+                {
+                    "name": "C&C: Red Aler 2 + Yuri",
+                    "group": "C",
+                    "value": 800,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Team Fortress 2",
+                    "group": "D",
+                    "value": 438,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Need for Speed series",
+                    "group": "E",
+                    "value": 400,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Terraria",
+                    "group": "F",
+                    "value": 351,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Fallout 4",
+                    "group": "G",
+                    "value": 311,
+                    "colname": "level3"
+                },
+                {
+                    "name": "GTA V",
+                    "group": "G",
+                    "value": 16,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Counter-Strike",
+                    "group": "D",
+                    "value": 200,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Factorio",
+                    "group": "F",
+                    "value": 140,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Minecraft",
+                    "group": "F",
+                    "value": 350,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Heroes of Might & Magic 3",
+                    "group": "C",
+                    "value": 140,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Skyrim",
+                    "group": "G",
+                    "value": 120,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Fallout 3",
+                    "group": "G",
+                    "value": 100,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Fallout: New Vegas",
+                    "group": "G",
+                    "value": 150,
+                    "colname": "level3"
+                },
+                {
+                    "name": "GTA: SA",
+                    "group": "G",
+                    "value": 100,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Quake III",
+                    "group": "D",
+                    "value": 100,
+                    "colname": "level3"
+                },
+                {
+                    "name": "GTA: Vice City",
+                    "group": "G",
+                    "value": 80,
+                    "colname": "level3"
+                },
+                {
+                    "name": "GTA IV",
+                    "group": "G",
+                    "value": 61,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Half-Life 2",
+                    "group": "D",
+                    "value": 60,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Portal 1+2",
+                    "group": "D",
+                    "value": 60,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Disciples 2",
+                    "group": "C",
+                    "value": 60,
+                    "colname": "level3"
+                }
+            ],
+            "colname": "level2"
+        }
+    ],
+    "name": "CEO"
+}
