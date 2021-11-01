@@ -1,0 +1,155 @@
+{
+    "children": [
+        {
+            "name": "Video Games",
+            "children": [
+                {
+                    "name": "DotA 2",
+                    "group": "A",
+                    "value": 4450,
+                    "colname": "level3"
+                },
+                {
+                    "name": "DotA (WC3)",
+                    "group": "A",
+                    "value": 2200,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Dendy games",
+                    "group": "B",
+                    "value": 1278,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Warcraft III",
+                    "group": "C",
+                    "value": 16,
+                    "colname": "level3"
+                },
+                {
+                    "name": "C&C: Red Aler 2 + Yuri",
+                    "group": "C",
+                    "value": 800,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Team Fortress 2",
+                    "group": "D",
+                    "value": 438,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Need for Speed series",
+                    "group": "E",
+                    "value": 400,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Terraria",
+                    "group": "F",
+                    "value": 351,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Fallout 4",
+                    "group": "G",
+                    "value": 311,
+                    "colname": "level3"
+                },
+                {
+                    "name": "GTA V",
+                    "group": "G",
+                    "value": 16,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Counter-Strike",
+                    "group": "D",
+                    "value": 200,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Factorio",
+                    "group": "F",
+                    "value": 140,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Minecraft",
+                    "group": "F",
+                    "value": 350,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Heroes of Might & Magic 3",
+                    "group": "C",
+                    "value": 140,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Skyrim",
+                    "group": "G",
+                    "value": 120,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Fallout 3",
+                    "group": "G",
+                    "value": 100,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Fallout: New Vegas",
+                    "group": "G",
+                    "value": 150,
+                    "colname": "level3"
+                },
+                {
+                    "name": "GTA: SA",
+                    "group": "G",
+                    "value": 100,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Quake III",
+                    "group": "D",
+                    "value": 100,
+                    "colname": "level3"
+                },
+                {
+                    "name": "GTA: Vice City",
+                    "group": "G",
+                    "value": 80,
+                    "colname": "level3"
+                },
+                {
+                    "name": "GTA IV",
+                    "group": "G",
+                    "value": 61,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Half-Life 2",
+                    "group": "D",
+                    "value": 60,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Portal 1+2",
+                    "group": "D",
+                    "value": 60,
+                    "colname": "level3"
+                },
+                {
+                    "name": "Disciples 2",
+                    "group": "C",
+                    "value": 60,
+                    "colname": "level3"
+                }
+            ],
+            "colname": "level2"
+        }
+    ],
+    "name": "CEO"
+}
