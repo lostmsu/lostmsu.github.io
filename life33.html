@@ -137,4 +137,10 @@ title: Mostly inaccurate but dead honest 33 years of one man's life
                     tool.style("display", "none");
                 });
         });
+
+        var timeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => window.location.reload(), 500)
+        });
     </script>
