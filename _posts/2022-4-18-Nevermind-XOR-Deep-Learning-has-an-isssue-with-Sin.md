@@ -6,7 +6,7 @@ excerpt_separator: <!--more-->
 ---
 
 More precisely, even the best neural networks can not be trained to approximate
-periodic functions using stohastic gradient descent. (empirically, prove me wrong!)
+periodic functions using stochastic gradient descent. (empirically, prove me wrong!)
 
 <h3>Contents</h3>
 * TOC
