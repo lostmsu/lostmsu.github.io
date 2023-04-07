@@ -1,0 +1,2 @@
+(window["webpackJsonp"]=window["webpackJsonp"]||[]).push([["chunk-2d0af40b"],{"0e11":function(t,s){t.exports={functional:!0,render(t,s){const{_c:a,_v:n,data:c,children:e=[]}=s,{class:l,staticClass:r,style:o,staticStyle:w,attrs:i={},...p}=c;return a("svg",{class:[l,r],style:[o,w],attrs:Object.assign({xmlns:"http://www.w3.org/2000/svg"},i),...p},e.concat([a("path",{attrs:{fill:"currentColor",d:"M6 2.8L1.5 7 0 5.6 6 0l6 5.6L10.5 7z"}})]))}}}}]);
+//# sourceMappingURL=chunk-2d0af40b.5907e060.js.map
