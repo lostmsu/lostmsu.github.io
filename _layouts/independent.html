@@ -3,6 +3,8 @@
   <head>
     <title>{% if page.title %}{{ page.title }}{% endif %}</title>
 
+    <link rel="icon" href="{{ page.favicon | default: '/favicon.ico' }}">
+
     {% include meta.html %}
 
     <!--[if lt IE 9]>
