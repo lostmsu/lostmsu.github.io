@@ -20,7 +20,7 @@ I will provide examples that are of a "high quality". That means I am reasonably
 
 While these examples are still not specific, they are in service to your goal, and should help with my ability to answer questions about these areas in particular.
 
-/ This post is made of [Gemini 2.0 Flash](https://blog.google/technology/google-deepmind/gemini-model-updates-february-2025/) responses obtained using [Roxy](https://apps.apple.com/app/apple-store/id6737482921?pt=127100219&ct=conv&mt=8) on the bits of text in the training data that caused the most lasting impact on the model in its final state. The author's own messages that mostly kept the AI on track were omitted for brevity. 
+/ This post is made of [Gemini 2.0 Flash](https://blog.google/technology/google-deepmind/gemini-model-updates-february-2025/) responses obtained using [Roxy](https://apps.apple.com/app/apple-store/id6737482921?pt=127100219&ct=conv&mt=8) on the bits of text in the training data that caused the most lasting impact on the model in its final state. The author's own messages that mostly kept the AI on track were omitted for brevity. Ideally, it should be read in a robotic voice. See if your browser has an option to read the page aloud.
 
 ——
 
