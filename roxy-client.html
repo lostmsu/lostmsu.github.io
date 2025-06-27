@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Borg Ephemeral Audio Bridge</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f0f0f0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border: 1px solid #ccc;
+        }
+        h1 {
+            text-align: center;
+        }
+        .control-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .control-group {
+            border: 1px solid #ddd;
+            padding: 15px;
+        }
+        input, button {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+        }
+        button {
+            background: #007cba;
+            color: white;
+            cursor: pointer;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .status {
+            background: #f8f8f8;
+            padding: 10px;
+            border: 1px solid #ddd;
+            min-height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .volume-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: red;
+            display: inline-block;
+            margin-right: 5px;
+        }
+        .indicator.connected {
+            background: green;
+        }
+        .node-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+        }
+        .node-item {
+            border: 1px solid #eee;
+            margin: 5px 0;
+            padding: 10px;
+            cursor: pointer;
+        }
+        .node-item:hover {
+            background: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 Borg Ephemeral Audio Bridge</h1>
+        
+        <div class="control-panel">
+            <div class="control-group">
+                <h3>Connection Settings</h3>
+                <input type="text" id="secretInput" placeholder="Enter secret key..." value="broxy" />
+                <input type="text" id="endpointInput" placeholder="Custom endpoint (optional)" />
+                <button id="connectBtn">Connect to Network</button>
+                <div>
+                    <span class="indicator" id="statusIndicator"></span>
+                    <span id="connectionStatus">Disconnected</span>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <h3>Audio Controls</h3>
+                <button id="micBtn">🎤 Start Microphone</button>
+                <button id="speakerBtn" disabled>🔊 Connect Audio Output</button>
+                <div class="volume-control">
+                    <label>Volume:</label>
+                    <input type="range" id="volumeSlider" class="volume-slider" min="0" max="1" step="0.1" value="0.5" />
+                    <span id="volumeValue">50%</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <h3>Available Nodes</h3>
+            <button id="refreshNodesBtn">Refresh Node List</button>
+            <div id="nodeList" class="node-list">
+                <p>Click "Refresh Node List" to discover available nodes...</p>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <h3>Connection Log</h3>
+            <div id="logOutput" class="status"></div>
+        </div>
+
+        <audio id="remoteAudio" autoplay controls style="width: 100%; margin-top: 20px;"></audio>
+    </div>
+
+    <script type="module">
+        // Utility functions
+        function wait(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        function devMode() {
+            return +localStorage.getItem('dev-mode') === 1;
+        }
+
+        function log(message) {
+            const logOutput = document.getElementById('logOutput');
+            const timestamp = new Date().toLocaleTimeString();
+            logOutput.innerHTML += `[${timestamp}] ${message}\n`;
+            logOutput.scrollTop = logOutput.scrollHeight;
+            console.log(message);
+        }
+
+        // Ephemeral class (copied and adapted from ephemeral.ts)
+        class Ephemeral {
+            constructor(endpoint = null, secret = null) {
+                const API = devMode() ? 'https://localhost:7173/ephemeral/' : "https://borg-ephemeral.azurewebsites.net/ephemeral/";
+                this.endpoint = endpoint || API;
+                if (secret) this.secret = secret;
+                this.stopCode = 0;
+            }
+
+            async connect(cfg, sessionId, answer, onCandidate) {
+                this.onCandidate = onCandidate;
+                this.sessionId = sessionId;
+                this.answer = answer;
+
+                await this.submitAnswer();
+                log('Answer submitted to peer');
+
+                this.fetchCandidates().then(() => log('Candidates fetch stopped'));
+            }
+
+            async submitAnswer() {
+                const headers = this.makeHeaders();
+                const response = await fetch(this.endpoint + this.sessionId + '/answer', {
+                    method: 'PUT',
+                    headers: headers,
+                    body: JSON.stringify(this.answer)
+                });
+
+                if (!response.ok) throw new Error('Failed to submit answer');
+            }
+
+            async sendCandidate(candidateJSON) {
+                const headers = this.makeHeaders();
+                const response = await fetch(this.endpoint + this.sessionId + '/answerIce', {
+                    method: 'PUT',
+                    headers: headers,
+                    body: candidateJSON
+                });
+
+                if (!response.ok) throw new Error('Failed to submit ICE candidate');
+            }
+
+            static async getNodes(endpoint = null, secret = null, filter = null, cancel = null) {
+                const API = devMode() ? 'https://localhost:7173/ephemeral/' : "https://borg-ephemeral.azurewebsites.net/ephemeral/";
+                endpoint = endpoint || API;
+                const options = {};
+                if (secret) options.headers = {'Secret': secret};
+                
+                let uri = endpoint + 'offers';
+                const search = {};
+                if (filter) {
+                    if (filter.verMin !== undefined) search.verMin = filter.verMin;
+                    if (filter.verMax !== undefined) search.verMax = filter.verMax;
+                    if (filter.features !== undefined) search.features = filter.features.join(',');
+                }
+                const filterQuery = new URLSearchParams(search).toString();
+                if (filterQuery) uri += '?' + filterQuery;
+                
+                const response = await fetch(uri, options);
+                if (!response.ok) throw new Error('Failed to fetch nodes');
+                return await response.json();
+            }
+
+            async fetchCandidates() {
+                const seen = new Set();
+                const options = {};
+                if (this.secret) options.headers = {'Secret': this.secret};
+                
+                while (this.stopCode === 0) {
+                    const response = await fetch(this.endpoint + this.sessionId, options);
+                    if (!response.ok) throw new Error('Failed to fetch ICE candidates');
+
+                    const session = await response.json();
+                    let done = false;
+
+                    // The session response may contain the full structure or just the candidates
+                    let candidates = [];
+                    
+                    if (session.OfferIce) {
+                        // New format with OfferIce field
+                        candidates = session.OfferIce;
+                    } else if (session.offerIce) {
+                        // Old format with offerIce field  
+                        candidates = session.offerIce;
+                    } else if (Array.isArray(session)) {
+                        // Direct array of candidates
+                        candidates = session;
+                    }
+                    
+                    for (const candidateJson of candidates) {
+                        if (seen.has(candidateJson)) continue;
+                        await this.onCandidate(candidateJson, null);
+                        seen.add(candidateJson);
+                        
+                        try {
+                            const candidate = JSON.parse(candidateJson);
+                            if (candidate && !candidate.candidate) {
+                                log('All candidates received (empty candidate)');
+                                done = true;
+                            }
+                        } catch (parseError) {
+                            log(`Failed to parse candidate for completion check: ${parseError.message}`);
+                        }
+                    }
+                    if (done) return;
+                    await wait(1000);
+                }
+            }
+
+            makeHeaders() {
+                const headers = { 'Content-Type': 'text/plain' };
+                if (this.secret) headers.Secret = this.secret;
+                return headers;
+            }
+
+            close(code) {
+                this.stopCode = code;
+            }
+        }
+
+        // WebRTC Audio Bridge Application
+        class AudioBridge {
+            constructor() {
+                this.ephemeral = null;
+                this.peerConnection = null;
+                this.localStream = null;
+                this.currentSecret = "broxy";
+                this.isConnected = false;
+                this.selectedNode = null;
+                
+                this.initializeUI();
+            }
+
+            initializeUI() {
+                // Get UI elements
+                this.secretInput = document.getElementById('secretInput');
+                this.endpointInput = document.getElementById('endpointInput');
+                this.connectBtn = document.getElementById('connectBtn');
+                this.micBtn = document.getElementById('micBtn');
+                this.speakerBtn = document.getElementById('speakerBtn');
+                this.refreshNodesBtn = document.getElementById('refreshNodesBtn');
+                this.volumeSlider = document.getElementById('volumeSlider');
+                this.volumeValue = document.getElementById('volumeValue');
+                this.statusIndicator = document.getElementById('statusIndicator');
+                this.connectionStatus = document.getElementById('connectionStatus');
+                this.nodeList = document.getElementById('nodeList');
+                this.remoteAudio = document.getElementById('remoteAudio');
+
+                // Event listeners
+                this.connectBtn.addEventListener('click', () => this.connectToNetwork());
+                this.micBtn.addEventListener('click', () => this.toggleMicrophone());
+                this.speakerBtn.addEventListener('click', () => this.connectToSelectedNode());
+                this.refreshNodesBtn.addEventListener('click', () => this.refreshNodes());
+                this.volumeSlider.addEventListener('input', (e) => {
+                    this.remoteAudio.volume = e.target.value;
+                    this.volumeValue.textContent = Math.round(e.target.value * 100) + '%';
+                });
+
+                log('Audio Bridge initialized');
+            }
+
+            async connectToNetwork() {
+                try {
+                    const secret = this.secretInput.value.trim() || 'broxy';
+                    const endpoint = this.endpointInput.value.trim() || null;
+
+                    if (!secret) {
+                        alert('Please enter a secret key');
+                        return;
+                    }
+
+                    this.currentSecret = secret;
+                    this.ephemeral = new Ephemeral(endpoint, secret);
+                    
+                    this.updateConnectionStatus(true, 'Connected to Borg Network');
+                    this.connectBtn.disabled = true;
+                    this.refreshNodesBtn.disabled = false;
+                    
+                    log(`Connected to network with secret: ${secret.substring(0, 3)}***`);
+                    await this.refreshNodes();
+                    
+                } catch (error) {
+                    log(`Connection failed: ${error.message}`);
+                    this.updateConnectionStatus(false, 'Connection Failed');
+                }
+            }
+
+            async refreshNodes() {
+                try {
+                    log('Fetching available nodes...');
+                    const nodes = await Ephemeral.getNodes(
+                        this.endpointInput.value.trim() || null,
+                        this.currentSecret
+                    );
+                    
+                    this.displayNodes(nodes);
+                    log(`Found ${nodes.length} available nodes`);
+                    
+                } catch (error) {
+                    log(`Failed to fetch nodes: ${error.message}`);
+                    this.nodeList.innerHTML = '<p>Failed to fetch nodes. Check your connection and secret.</p>';
+                }
+            }
+
+            displayNodes(nodes) {
+                if (nodes.length === 0) {
+                    this.nodeList.innerHTML = '<p>No nodes available at this time.</p>';
+                    return;
+                }
+
+                this.nodeList.innerHTML = '';
+                nodes.forEach((node, index) => {
+                    const nodeDiv = document.createElement('div');
+                    nodeDiv.className = 'node-item';
+                    
+                    // Log the node structure for debugging
+                    log(`Node ${index + 1} structure: ${JSON.stringify(Object.keys(node))}`);
+                    
+                    const sessionId = node.session_id || 'unknown';
+                    let version = 'unknown';
+                    let offerStatus = 'No offer';
+                    
+                    // Try to parse peer_connection_offer to get version and offer status
+                    if (node.peer_connection_offer) {
+                        try {
+                            const nodeData = JSON.parse(node.peer_connection_offer);
+                            version = nodeData.Version || 'unknown';
+                            offerStatus = nodeData.Offer ? 'Has offer' : 'No offer';
+                            log(`Node ${index + 1} parsed data - Version: ${version}, OfferIce count: ${nodeData.OfferIce?.length || 0}`);
+                        } catch (parseError) {
+                            log(`Failed to parse peer_connection_offer for node ${index + 1}: ${parseError.message}`);
+                            offerStatus = 'Parse error';
+                        }
+                    }
+                    
+                    nodeDiv.innerHTML = `
+                        <strong>Node ${index + 1}</strong><br>
+                        Session: ${sessionId.substring(0, 8)}...<br>
+                        Version: ${version}<br>
+                        Status: ${offerStatus}<br>
+                        <small>Click to select for audio connection</small>
+                    `;
+                    nodeDiv.addEventListener('click', () => this.selectNode(node, nodeDiv));
+                    this.nodeList.appendChild(nodeDiv);
+                });
+            }
+
+            selectNode(node, element) {
+                // Remove previous selection
+                document.querySelectorAll('.node-item').forEach(item => {
+                    item.style.border = 'none';
+                });
+                
+                // Highlight selected node
+                element.style.border = '2px solid #2ed573';
+                
+                this.selectedNode = node;
+                this.speakerBtn.disabled = !this.localStream;
+                
+                const sessionId = node.session_id || 'unknown';
+                log(`Selected node: ${sessionId.substring(0, 8)}...`);
+            }
+
+            async toggleMicrophone() {
+                try {
+                    if (!this.localStream) {
+                        // Start microphone
+                        this.localStream = await navigator.mediaDevices.getUserMedia({
+                            audio: {
+                                echoCancellation: true,
+                                noiseSuppression: true,
+                                autoGainControl: true
+                            }
+                        });
+                        
+                        this.micBtn.textContent = '🎤 Stop Microphone';
+                        this.micBtn.style.background = 'linear-gradient(45deg, #2ed573, #17a2b8)';
+                        
+                        if (this.selectedNode) {
+                            this.speakerBtn.disabled = false;
+                        }
+                        
+                        log('Microphone started successfully');
+                        
+                    } else {
+                        // Stop microphone
+                        this.localStream.getTracks().forEach(track => track.stop());
+                        this.localStream = null;
+                        
+                        this.micBtn.textContent = '🎤 Start Microphone';
+                        this.micBtn.style.background = 'linear-gradient(45deg, #ff6b6b, #ee5a24)';
+                        this.speakerBtn.disabled = true;
+                        
+                        if (this.peerConnection) {
+                            this.peerConnection.close();
+                            this.peerConnection = null;
+                        }
+                        
+                        log('Microphone stopped');
+                    }
+                } catch (error) {
+                    log(`Microphone error: ${error.message}`);
+                    alert('Failed to access microphone. Please check permissions.');
+                }
+            }
+
+            async connectToSelectedNode() {
+                if (!this.selectedNode || !this.localStream) {
+                    alert('Please select a node and start your microphone first');
+                    return;
+                }
+
+                try {
+                    log('Establishing WebRTC connection...');
+                    
+                    // Create peer connection
+                    this.peerConnection = new RTCPeerConnection({
+                        iceServers: [
+                            { urls: 'stun:stun.l.google.com:19302' },
+                            { urls: 'stun:stun1.l.google.com:19302' }
+                        ]
+                    });
+
+                    // Add local stream
+                    this.localStream.getTracks().forEach(track => {
+                        this.peerConnection.addTrack(track, this.localStream);
+                    });
+
+                    // Handle remote stream
+                    this.peerConnection.ontrack = (event) => {
+                        log('Received remote audio stream');
+                        this.remoteAudio.srcObject = event.streams[0];
+                        this.speakerBtn.textContent = '🔊 Audio Connected';
+                        this.speakerBtn.style.background = 'linear-gradient(45deg, #2ed573, #17a2b8)';
+                    };
+
+                    // Handle ICE candidates
+                    this.peerConnection.onicecandidate = async (event) => {
+                        if (event.candidate) {
+                            try {
+                                await this.ephemeral.sendCandidate(JSON.stringify(event.candidate));
+                                log('Sent ICE candidate');
+                            } catch (error) {
+                                log(`Failed to send ICE candidate: ${error.message}`);
+                            }
+                        }
+                    };
+
+                    // Parse the peer_connection_offer which contains the full JSON structure
+                    let nodeData, offer;
+                    if (this.selectedNode.peer_connection_offer) {
+                        try {
+                            // Parse the JSON-in-JSON structure from peer_connection_offer
+                            nodeData = JSON.parse(this.selectedNode.peer_connection_offer);
+                            log(`Parsed node data with version: ${nodeData.Version || 'unknown'}`);
+                            
+                            // Extract the actual WebRTC offer from the Offer field
+                            if (nodeData.Offer) {
+                                offer = JSON.parse(nodeData.Offer);
+                                log('Successfully parsed WebRTC offer from nodeData.Offer');
+                            } else {
+                                throw new Error('No Offer field found in peer_connection_offer data');
+                            }
+                        } catch (parseError) {
+                            log(`Failed to parse peer_connection_offer: ${parseError.message}`);
+                            throw new Error('Invalid peer_connection_offer format');
+                        }
+                    } else {
+                        throw new Error('No peer_connection_offer found in node data');
+                    }
+                    
+                    await this.peerConnection.setRemoteDescription(offer);
+                    log('Set remote offer description');
+
+                    // Add ICE candidates from OfferIce array if available
+                    if (nodeData.OfferIce && Array.isArray(nodeData.OfferIce)) {
+                        log(`Adding ${nodeData.OfferIce.length} ICE candidates from OfferIce`);
+                        for (const candidateJson of nodeData.OfferIce) {
+                            try {
+                                const candidate = JSON.parse(candidateJson);
+                                if (candidate && candidate.candidate) {
+                                    await this.peerConnection.addIceCandidate(candidate);
+                                    log(`Added ICE candidate: ${candidate.candidate.substring(0, 30)}...`);
+                                }
+                            } catch (candidateError) {
+                                log(`Failed to parse ICE candidate: ${candidateError.message}`);
+                            }
+                        }
+                    } else {
+                        log('No OfferIce candidates found in node data');
+                    }
+
+                    // Create and set local answer
+                    const answer = await this.peerConnection.createAnswer();
+                    await this.peerConnection.setLocalDescription(answer);
+                    log('Created local answer');
+
+                    // Get session ID from the original node data (not the parsed peer_connection_offer)
+                    const sessionId = this.selectedNode.session_id;
+                    if (!sessionId) {
+                        throw new Error('No session_id found in node data');
+                    }
+
+                    // Connect through ephemeral service
+                    await this.ephemeral.connect(
+                        {},
+                        sessionId,
+                        answer,
+                        async (candidateJSON) => {
+                            try {
+                                const candidate = JSON.parse(candidateJSON);
+                                if (candidate && candidate.candidate) {
+                                    await this.peerConnection.addIceCandidate(candidate);
+                                    log('Added remote ICE candidate from live fetch');
+                                }
+                            } catch (candidateError) {
+                                log(`Failed to parse live ICE candidate: ${candidateError.message}`);
+                            }
+                        }
+                    );
+
+                    this.speakerBtn.disabled = true;
+                    log('WebRTC connection established successfully!');
+                    
+                } catch (error) {
+                    log(`Connection failed: ${error.message}`);
+                    alert('Failed to establish audio connection');
+                }
+            }
+
+            updateConnectionStatus(connected, message) {
+                this.isConnected = connected;
+                this.connectionStatus.textContent = message;
+                
+                if (connected) {
+                    this.statusIndicator.classList.add('connected');
+                } else {
+                    this.statusIndicator.classList.remove('connected');
+                }
+            }
+        }
+
+        // Initialize the application
+        window.addEventListener('DOMContentLoaded', () => {
+            new AudioBridge();
+        });
+    </script>
+</body>
+</html>
