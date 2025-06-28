@@ -124,9 +124,20 @@
                 <button id="micBtn">🎤 Start Microphone</button>
                 <button id="speakerBtn" disabled>🔊 Connect Audio Output</button>
                 <div class="volume-control">
-                    <label>Volume:</label>
+                    <label>Remote Volume:</label>
                     <input type="range" id="volumeSlider" class="volume-slider" min="0" max="1" step="0.1" value="0.5" />
                     <span id="volumeValue">50%</span>
+                </div>
+                <div class="volume-control">
+                    <label>Microphone Gain:</label>
+                    <input type="range" id="micGainSlider" class="volume-slider" min="0" max="3" step="0.1" value="1" />
+                    <span id="micGainValue">100%</span>
+                </div>
+                <div class="volume-control">
+                    <label>Mic Level:</label>
+                    <div id="micLevelBar" style="width: 100%; height: 10px; background: #ddd; border: 1px solid #ccc;">
+                        <div id="micLevelIndicator" style="width: 0%; height: 100%; background: linear-gradient(90deg, green, yellow, red);"></div>
+                    </div>
                 </div>
                 <div class="audio-options">
                     <label><input type="checkbox" id="echoCancellation" checked> Echo Cancellation</label><br>
@@ -313,10 +324,17 @@
                 this.refreshNodesBtn = document.getElementById('refreshNodesBtn');
                 this.volumeSlider = document.getElementById('volumeSlider');
                 this.volumeValue = document.getElementById('volumeValue');
+                this.micGainSlider = document.getElementById('micGainSlider');
+                this.micGainValue = document.getElementById('micGainValue');
+                this.micLevelBar = document.getElementById('micLevelBar');
+                this.micLevelIndicator = document.getElementById('micLevelIndicator');
                 this.statusIndicator = document.getElementById('statusIndicator');
                 this.connectionStatus = document.getElementById('connectionStatus');
                 this.nodeList = document.getElementById('nodeList');
                 this.remoteAudio = document.getElementById('remoteAudio');
+                this.micGainSlider = document.getElementById('micGainSlider');
+                this.micGainValue = document.getElementById('micGainValue');
+                this.micLevelIndicator = document.getElementById('micLevelIndicator');
                 this.echoCancellation = document.getElementById('echoCancellation');
                 this.noiseSuppression = document.getElementById('noiseSuppression');
                 this.autoGainControl = document.getElementById('autoGainControl');
@@ -329,6 +347,21 @@
                 this.volumeSlider.addEventListener('input', (e) => {
                     this.remoteAudio.volume = e.target.value;
                     this.volumeValue.textContent = Math.round(e.target.value * 100) + '%';
+                });
+
+                this.micGainSlider.addEventListener('input', (e) => {
+                    this.updateMicrophoneGain(e.target.value);
+                    this.micGainValue.textContent = Math.round(e.target.value * 100) + '%';
+                });
+                this.micGainSlider.addEventListener('input', (e) => {
+                    const gainValue = e.target.value;
+                    this.micGainValue.textContent = (gainValue * 100) + '%';
+                    
+                    if (this.localStream) {
+                        this.localStream.getAudioTracks().forEach(track => {
+                            track.applyConstraints({ volume: gainValue });
+                        });
+                    }
                 });
 
                 log('Audio Bridge initialized');
@@ -439,17 +472,21 @@
             async toggleMicrophone() {
                 try {
                     if (!this.localStream) {
-                        // Start microphone
+                        // Start microphone with enhanced audio constraints
                         this.localStream = await navigator.mediaDevices.getUserMedia({
                             audio: {
                                 echoCancellation: this.echoCancellation.checked,
                                 noiseSuppression: this.noiseSuppression.checked,
-                                autoGainControl: this.autoGainControl.checked
+                                autoGainControl: this.autoGainControl.checked,
+                                volume: 1.0
                             }
                         });
                         
                         this.micBtn.textContent = '🎤 Stop Microphone';
                         this.micBtn.style.background = 'linear-gradient(45deg, #2ed573, #17a2b8)';
+                        
+                        // Start audio processing for gain control and level monitoring
+                        this.startAudioLevelMonitoring();
                         
                         if (this.selectedNode) {
                             this.speakerBtn.disabled = false;
@@ -459,6 +496,7 @@
                         
                     } else {
                         // Stop microphone
+                        this.stopAudioProcessing();
                         this.localStream.getTracks().forEach(track => track.stop());
                         this.localStream = null;
                         
@@ -611,6 +649,90 @@
                     this.statusIndicator.classList.add('connected');
                 } else {
                     this.statusIndicator.classList.remove('connected');
+                }
+            }
+
+            updateMicrophoneGain(gain) {
+                if (this.localStream && this.gainNode) {
+                    this.gainNode.gain.value = gain;
+                    log(`Microphone gain set to ${Math.round(gain * 100)}%`);
+                }
+            }
+
+            startAudioLevelMonitoring() {
+                if (!this.localStream || this.audioContext) return;
+
+                try {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    const source = this.audioContext.createMediaStreamSource(this.localStream);
+                    
+                    // Create gain node for manual volume control
+                    this.gainNode = this.audioContext.createGain();
+                    this.gainNode.gain.value = this.micGainSlider.value;
+                    
+                    // Create analyser for level monitoring
+                    this.analyser = this.audioContext.createAnalyser();
+                    this.analyser.fftSize = 512;
+                    this.analyser.smoothingTimeConstant = 0.8;
+                    
+                    // Create destination to maintain audio flow
+                    const destination = this.audioContext.createMediaStreamDestination();
+                    
+                    // Connect nodes: source -> gain -> analyser -> destination
+                    source.connect(this.gainNode);
+                    this.gainNode.connect(this.analyser);
+                    this.analyser.connect(destination);
+                    
+                    // Replace the original stream with the processed one
+                    const processedTrack = destination.stream.getAudioTracks()[0];
+                    const originalTrack = this.localStream.getAudioTracks()[0];
+                    
+                    this.localStream.removeTrack(originalTrack);
+                    this.localStream.addTrack(processedTrack);
+                    
+                    // Start level monitoring
+                    this.monitorAudioLevel();
+                    
+                    log('Audio level monitoring and gain control started');
+                } catch (error) {
+                    log(`Failed to start audio processing: ${error.message}`);
+                }
+            }
+
+            monitorAudioLevel() {
+                if (!this.analyser) return;
+
+                const dataArray = new Uint8Array(this.analyser.frequencyBinCount);
+                
+                const updateLevel = () => {
+                    if (!this.analyser) return;
+                    
+                    this.analyser.getByteFrequencyData(dataArray);
+                    
+                    // Calculate average level
+                    let sum = 0;
+                    for (let i = 0; i < dataArray.length; i++) {
+                        sum += dataArray[i];
+                    }
+                    const average = sum / dataArray.length;
+                    const percentage = (average / 255) * 100;
+                    
+                    // Update visual indicator
+                    this.micLevelIndicator.style.width = percentage + '%';
+                    
+                    requestAnimationFrame(updateLevel);
+                };
+                
+                updateLevel();
+            }
+
+            stopAudioProcessing() {
+                if (this.audioContext) {
+                    this.audioContext.close();
+                    this.audioContext = null;
+                    this.gainNode = null;
+                    this.analyser = null;
+                    log('Audio processing stopped');
                 }
             }
         }
