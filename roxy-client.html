@@ -59,6 +59,23 @@
             align-items: center;
             gap: 10px;
         }
+        .audio-options {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .audio-options label {
+            display: inline-block;
+            margin: 2px 0;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .audio-options input[type="checkbox"] {
+            width: auto;
+            margin-right: 8px;
+        }
         .indicator {
             width: 10px;
             height: 10px;
@@ -102,8 +119,7 @@
                     <span id="connectionStatus">Disconnected</span>
                 </div>
             </div>
-            
-            <div class="control-group">
+              <div class="control-group">
                 <h3>Audio Controls</h3>
                 <button id="micBtn">🎤 Start Microphone</button>
                 <button id="speakerBtn" disabled>🔊 Connect Audio Output</button>
@@ -111,6 +127,11 @@
                     <label>Volume:</label>
                     <input type="range" id="volumeSlider" class="volume-slider" min="0" max="1" step="0.1" value="0.5" />
                     <span id="volumeValue">50%</span>
+                </div>
+                <div class="audio-options">
+                    <label><input type="checkbox" id="echoCancellation" checked> Echo Cancellation</label><br>
+                    <label><input type="checkbox" id="noiseSuppression" checked> Noise Suppression</label><br>
+                    <label><input type="checkbox" id="autoGainControl" checked> Auto Gain Control</label>
                 </div>
             </div>
         </div>
@@ -281,7 +302,7 @@
                 
                 this.initializeUI();
             }
-
+            
             initializeUI() {
                 // Get UI elements
                 this.secretInput = document.getElementById('secretInput');
@@ -296,6 +317,9 @@
                 this.connectionStatus = document.getElementById('connectionStatus');
                 this.nodeList = document.getElementById('nodeList');
                 this.remoteAudio = document.getElementById('remoteAudio');
+                this.echoCancellation = document.getElementById('echoCancellation');
+                this.noiseSuppression = document.getElementById('noiseSuppression');
+                this.autoGainControl = document.getElementById('autoGainControl');
 
                 // Event listeners
                 this.connectBtn.addEventListener('click', () => this.connectToNetwork());
@@ -411,16 +435,16 @@
                 const sessionId = node.session_id || 'unknown';
                 log(`Selected node: ${sessionId.substring(0, 8)}...`);
             }
-
+            
             async toggleMicrophone() {
                 try {
                     if (!this.localStream) {
                         // Start microphone
                         this.localStream = await navigator.mediaDevices.getUserMedia({
                             audio: {
-                                echoCancellation: true,
-                                noiseSuppression: true,
-                                autoGainControl: true
+                                echoCancellation: this.echoCancellation.checked,
+                                noiseSuppression: this.noiseSuppression.checked,
+                                autoGainControl: this.autoGainControl.checked
                             }
                         });
                         
@@ -431,7 +455,7 @@
                             this.speakerBtn.disabled = false;
                         }
                         
-                        log('Microphone started successfully');
+                        log(`Microphone started with EC:${this.echoCancellation.checked} NS:${this.noiseSuppression.checked} AGC:${this.autoGainControl.checked}`);
                         
                     } else {
                         // Stop microphone
