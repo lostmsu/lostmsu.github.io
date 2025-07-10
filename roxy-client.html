@@ -102,6 +102,16 @@
         .node-item:hover {
             background: #f0f0f0;
         }
+        .connect-node-btn {
+            transition: all 0.2s ease;
+        }
+        .connect-node-btn:hover:not(:disabled) {
+            background: #218838 !important;
+            transform: translateY(-1px);
+        }
+        .connect-node-btn:disabled {
+            opacity: 0.6;
+        }
     </style>
 </head>
 <body>
@@ -446,11 +456,32 @@
                         Session: ${sessionId.substring(0, 8)}...<br>
                         Version: ${version}<br>
                         Status: ${offerStatus}<br>
-                        <small>Click to select for audio connection</small>
+                        <button class="connect-node-btn" style="margin-top: 8px; padding: 6px 12px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;" 
+                                ${!this.localStream ? 'disabled title="Start microphone first"' : ''}>
+                            🔗 Connect Audio
+                        </button>
                     `;
-                    nodeDiv.addEventListener('click', () => this.selectNode(node, nodeDiv));
+                    
+                    const connectBtn = nodeDiv.querySelector('.connect-node-btn');
+                    if (connectBtn) {
+                        connectBtn.addEventListener('click', (e) => {
+                            e.stopPropagation(); // Prevent node selection
+                            this.connectToNode(node);
+                        });
+                    }
+                    
                     this.nodeList.appendChild(nodeDiv);
                 });
+            }
+
+            connectToNode(node) {
+                if (!this.localStream) {
+                    alert('Please start your microphone first');
+                    return;
+                }
+                
+                this.selectedNode = node;
+                this.connectToSelectedNode();
             }
 
             selectNode(node, element) {
@@ -492,6 +523,9 @@
                             this.speakerBtn.disabled = false;
                         }
                         
+                        // Update node connect buttons
+                        this.updateNodeConnectButtons();
+                        
                         log(`Microphone started with EC:${this.echoCancellation.checked} NS:${this.noiseSuppression.checked} AGC:${this.autoGainControl.checked}`);
                         
                     } else {
@@ -503,6 +537,9 @@
                         this.micBtn.textContent = '🎤 Start Microphone';
                         this.micBtn.style.background = 'linear-gradient(45deg, #ff6b6b, #ee5a24)';
                         this.speakerBtn.disabled = true;
+                        
+                        // Update node connect buttons
+                        this.updateNodeConnectButtons();
                         
                         if (this.peerConnection) {
                             this.peerConnection.close();
@@ -521,6 +558,24 @@
                 if (!this.selectedNode || !this.localStream) {
                     alert('Please select a node and start your microphone first');
                     return;
+                }
+
+                // Find and update the button for this connection attempt
+                const connectButtons = document.querySelectorAll('.connect-node-btn');
+                let currentButton = null;
+                
+                // Find the button for the selected node (this is a bit hacky but works)
+                document.querySelectorAll('.node-item').forEach((nodeDiv, index) => {
+                    const button = nodeDiv.querySelector('.connect-node-btn');
+                    if (button && nodeDiv.textContent.includes(this.selectedNode.session_id.substring(0, 8))) {
+                        currentButton = button;
+                    }
+                });
+
+                if (currentButton) {
+                    currentButton.textContent = '⏳ Connecting...';
+                    currentButton.disabled = true;
+                    currentButton.style.background = '#ffc107';
                 }
 
                 try {
@@ -635,9 +690,23 @@
                     this.speakerBtn.disabled = true;
                     log('WebRTC connection established successfully!');
                     
+                    // Update button to show success
+                    if (currentButton) {
+                        currentButton.textContent = '✅ Connected';
+                        currentButton.style.background = '#17a2b8';
+                        currentButton.disabled = true;
+                    }
+                    
                 } catch (error) {
                     log(`Connection failed: ${error.message}`);
                     alert('Failed to establish audio connection');
+                    
+                    // Reset button on failure
+                    if (currentButton) {
+                        currentButton.textContent = '🔗 Connect Audio';
+                        currentButton.style.background = '#28a745';
+                        currentButton.disabled = false;
+                    }
                 }
             }
 
@@ -734,6 +803,23 @@
                     this.analyser = null;
                     log('Audio processing stopped');
                 }
+            }
+
+            updateNodeConnectButtons() {
+                const connectButtons = document.querySelectorAll('.connect-node-btn');
+                connectButtons.forEach(btn => {
+                    if (this.localStream) {
+                        btn.disabled = false;
+                        btn.style.background = '#28a745';
+                        btn.style.cursor = 'pointer';
+                        btn.title = '';
+                    } else {
+                        btn.disabled = true;
+                        btn.style.background = '#ccc';
+                        btn.style.cursor = 'not-allowed';
+                        btn.title = 'Start microphone first';
+                    }
+                });
             }
         }
 
