@@ -112,6 +112,13 @@
         .connect-node-btn:disabled {
             opacity: 0.6;
         }
+        .disconnect-node-btn {
+            transition: all 0.2s ease;
+        }
+        .disconnect-node-btn:hover {
+            background: #c82333 !important;
+            transform: translateY(-1px);
+        }
     </style>
 </head>
 <body>
@@ -320,6 +327,7 @@
                 this.currentSecret = "broxy";
                 this.isConnected = false;
                 this.selectedNode = null;
+                this.currentConnection = null; // Track current connection state
                 
                 this.initializeUI();
             }
@@ -541,6 +549,11 @@
                         // Update node connect buttons
                         this.updateNodeConnectButtons();
                         
+                        // Disconnect any existing connections when mic stops
+                        if (this.currentConnection) {
+                            this.handleDisconnection(null, 'Microphone stopped');
+                        }
+                        
                         if (this.peerConnection) {
                             this.peerConnection.close();
                             this.peerConnection = null;
@@ -600,6 +613,37 @@
                         this.remoteAudio.srcObject = event.streams[0];
                         this.speakerBtn.textContent = '🔊 Audio Connected';
                         this.speakerBtn.style.background = 'linear-gradient(45deg, #2ed573, #17a2b8)';
+                    };
+
+                    // Handle connection state changes
+                    this.peerConnection.onconnectionstatechange = () => {
+                        const state = this.peerConnection.connectionState;
+                        log(`WebRTC connection state: ${state}`);
+                        
+                        if (state === 'connected') {
+                            this.currentConnection = this.selectedNode;
+                        } else if (state === 'disconnected' || state === 'failed' || state === 'closed') {
+                            this.handleDisconnection(currentButton, 'Connection lost');
+                        }
+                    };
+
+                    // Handle ICE connection state changes
+                    this.peerConnection.oniceconnectionstatechange = () => {
+                        const state = this.peerConnection.iceConnectionState;
+                        log(`ICE connection state: ${state}`);
+                        
+                        if (state === 'failed') {
+                            this.handleDisconnection(currentButton, 'ICE connection failed');
+                        }
+                    };
+
+                    // Handle data channel closure (if the remote peer disconnects)
+                    this.peerConnection.ondatachannel = (event) => {
+                        const channel = event.channel;
+                        channel.onclose = () => {
+                            log('Data channel closed by remote peer');
+                            this.handleDisconnection(currentButton, 'Remote peer disconnected');
+                        };
                     };
 
                     // Handle ICE candidates
@@ -695,17 +739,99 @@
                         currentButton.textContent = '✅ Connected';
                         currentButton.style.background = '#17a2b8';
                         currentButton.disabled = true;
+                        
+                        // Add disconnect button to the node
+                        const nodeDiv = currentButton.parentNode;
+                        this.addDisconnectButton(nodeDiv, this.selectedNode);
                     }
                     
                 } catch (error) {
                     log(`Connection failed: ${error.message}`);
-                    alert('Failed to establish audio connection');
                     
                     // Reset button on failure
                     if (currentButton) {
                         currentButton.textContent = '🔗 Connect Audio';
                         currentButton.style.background = '#28a745';
                         currentButton.disabled = false;
+                    }
+                }
+            }
+
+            handleDisconnection(button, reason) {
+                log(`Handling disconnection: ${reason}`);
+                
+                // Close peer connection if it exists
+                if (this.peerConnection) {
+                    this.peerConnection.close();
+                    this.peerConnection = null;
+                }
+                
+                // Clear remote audio
+                if (this.remoteAudio.srcObject) {
+                    this.remoteAudio.srcObject = null;
+                }
+                
+                // Reset connection state
+                this.currentConnection = null;
+                
+                // Reset speaker button
+                this.speakerBtn.textContent = '🔊 Connect Audio Output';
+                this.speakerBtn.style.background = '#007cba';
+                this.speakerBtn.disabled = !this.localStream;
+                
+                // Reset the specific node button if provided
+                if (button) {
+                    button.textContent = '🔗 Connect Audio';
+                    button.style.background = '#28a745';
+                    button.disabled = !this.localStream;
+                    button.title = this.localStream ? '' : 'Start microphone first';
+                }
+                
+                // Close ephemeral connection
+                if (this.ephemeral) {
+                    this.ephemeral.close(1);
+                }
+                
+                // Remove any disconnect buttons from all nodes
+                document.querySelectorAll('.disconnect-node-btn').forEach(btn => btn.remove());
+                
+                log(`Disconnected: ${reason}`);
+            }
+
+            addDisconnectButton(nodeDiv, node) {
+                const disconnectBtn = document.createElement('button');
+                disconnectBtn.textContent = '❌ Disconnect';
+                disconnectBtn.className = 'disconnect-node-btn';
+                disconnectBtn.style.cssText = `
+                    margin-top: 4px; 
+                    padding: 4px 8px; 
+                    background: #dc3545; 
+                    color: white; 
+                    border: none; 
+                    border-radius: 4px; 
+                    cursor: pointer; 
+                    font-size: 11px;
+                    width: 100%;
+                `;
+                
+                disconnectBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.disconnectFromNode(node, nodeDiv);
+                });
+                
+                nodeDiv.appendChild(disconnectBtn);
+                return disconnectBtn;
+            }
+
+            disconnectFromNode(node, nodeDiv) {
+                if (this.currentConnection && this.currentConnection.session_id === node.session_id) {
+                    const connectBtn = nodeDiv.querySelector('.connect-node-btn');
+                    this.handleDisconnection(connectBtn, 'User requested disconnection');
+                    
+                    // Remove disconnect button
+                    const disconnectBtn = nodeDiv.querySelector('.disconnect-node-btn');
+                    if (disconnectBtn) {
+                        disconnectBtn.remove();
                     }
                 }
             }
